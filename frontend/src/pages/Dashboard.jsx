@@ -9,6 +9,7 @@ function Dashboard({ trips, activeTrip, setActiveTripId, setTrips, token, userNa
   const [payerId, setPayerId] = useState('');
   const [contributorIds, setContributorIds] = useState([]);
   const [editingTxId, setEditingTxId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [summaryTripId, setSummaryTripId] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -87,6 +88,7 @@ function Dashboard({ trips, activeTrip, setActiveTripId, setTrips, token, userNa
     }
 
     try {
+      setIsSubmitting(true);
       const url = editingTxId 
         ? `${API_BASE}/trips/${activeTrip.id}/transactions/${editingTxId}`
         : `${API_BASE}/trips/${activeTrip.id}/transactions`;
@@ -116,12 +118,15 @@ function Dashboard({ trips, activeTrip, setActiveTripId, setTrips, token, userNa
       }
     } catch (err) {
        console.error(err);
+    } finally {
+       setIsSubmitting(false);
     }
   };
 
   const handleDeleteTransaction = async (txId) => {
     if (!window.confirm("Are you sure you want to delete this transaction?")) return;
     try {
+      setIsSubmitting(true);
       const res = await fetch(`${API_BASE}/trips/${activeTrip.id}/transactions/${txId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -133,12 +138,15 @@ function Dashboard({ trips, activeTrip, setActiveTripId, setTrips, token, userNa
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDeleteTrip = async () => {
     if (!window.confirm(`Are you sure you want to completely delete "${activeTrip.title}" and all its records?`)) return;
     try {
+      setIsSubmitting(true);
       const res = await fetch(`${API_BASE}/trips/${activeTrip.id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -151,9 +159,11 @@ function Dashboard({ trips, activeTrip, setActiveTripId, setTrips, token, userNa
       } else {
         const errData = await res.json();
         alert("Failed to delete trip: " + errData.message);
+        setIsSubmitting(false);
       }
     } catch (err) {
       console.error(err);
+      setIsSubmitting(false);
     }
   };
 
@@ -270,9 +280,10 @@ function Dashboard({ trips, activeTrip, setActiveTripId, setTrips, token, userNa
                 onClick={handleDeleteTrip}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                 title="Delete Entire Trip"
+                disabled={isSubmitting}
               >
                 <Trash2 size={20} />
-                <span style={{ fontWeight: 600 }}>Delete Trip</span>
+                <span style={{ fontWeight: 600 }}>{isSubmitting ? "Deleting..." : "Delete Trip"}</span>
               </button>
             </div>
 
@@ -349,11 +360,11 @@ function Dashboard({ trips, activeTrip, setActiveTripId, setTrips, token, userNa
                  </div>
 
                  <div style={{ display: 'flex', gap: '1rem' }} className="mt-4">
-                   <button type="submit" className="primary-btn">
-                     {editingTxId ? "Update Transaction" : "Add Transaction to DB"}
+                   <button type="submit" className="primary-btn" disabled={isSubmitting}>
+                     {isSubmitting ? "Processing..." : (editingTxId ? "Update Transaction" : "Add Transaction to DB")}
                    </button>
                    {editingTxId && (
-                     <button type="button" className="login-btn" onClick={resetForm} style={{ width: '100%' }}>
+                     <button type="button" className="login-btn" onClick={resetForm} style={{ width: '100%' }} disabled={isSubmitting}>
                        Cancel Edit
                      </button>
                    )}
@@ -397,6 +408,7 @@ function Dashboard({ trips, activeTrip, setActiveTripId, setTrips, token, userNa
                                onClick={() => handleDeleteTransaction(tx.id)}
                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary-color)' }}
                                title="Delete"
+                               disabled={isSubmitting}
                              >
                                <Trash2 size={18} />
                              </button>
