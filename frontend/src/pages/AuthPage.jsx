@@ -41,7 +41,8 @@ function AuthPage({ onLoginSuccess }) {
         setErrorMSG(data.message || 'Authentication failed');
       }
     } catch (err) {
-      setErrorMSG('Network error: server may be unreachable.');
+      console.error(err);
+      setErrorMSG('Network error: ' + err.message);
     } finally {
       setLoading(false);
     }
