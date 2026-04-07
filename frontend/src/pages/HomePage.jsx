@@ -8,6 +8,8 @@ function HomePage({ onComplete, trips = [], setActiveTripId, userName, onLogout 
   const [friendNames, setFriendNames] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+
   const handleNextStep1 = (e) => {
     e.preventDefault();
     if (!tripTitle.trim()) {
@@ -29,16 +31,18 @@ function HomePage({ onComplete, trips = [], setActiveTripId, userName, onLogout 
     setFriendNames(newNames);
   };
 
-  const handleCompleteRegistration = (e) => {
+  const handleCompleteRegistration = async (e) => {
     e.preventDefault();
     if (friendNames.some(name => name.trim() === '')) {
       alert("Please fill in all friend names.");
       return;
     }
-    onComplete({
+    setLoading(true);
+    await onComplete({
       title: tripTitle,
       friends: friendNames
     });
+    setLoading(false);
   };
 
   return (
@@ -187,9 +191,9 @@ function HomePage({ onComplete, trips = [], setActiveTripId, userName, onLogout 
               <button 
                 type="submit" 
                 className="primary-btn" 
-                disabled={friendNames.length === 0}
+                disabled={friendNames.length === 0 || loading}
               >
-                Complete Registration
+                {loading ? 'Starting Trip...' : 'Complete Registration'}
               </button>
             </form>
           </div>
