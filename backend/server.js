@@ -33,7 +33,8 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
   // Let React router handle anything that isn't an API route
-  app.get('*', (req, res) => {
+  // Express 5.x uses updated path-to-regexp which removes generic '*'
+  app.get(/.*/, (req, res) => {
     res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
   });
 } else {
